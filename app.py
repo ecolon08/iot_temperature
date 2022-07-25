@@ -15,3 +15,4 @@ api.add_resource(Dht11, '/dht11/livingroom')
 
 if __name__ == '__main__':
     app.run(debug=True, host="0.0.0.0")
+    
