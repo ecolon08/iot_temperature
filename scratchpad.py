@@ -7,7 +7,7 @@ import pandas as pd
 today = datetime.datetime.today()
 date = today.strftime("%Y-%m-%d %H:%M:%S").split(" ")[0]
 
-query = f"SELECT * FROM iot_temperature WHERE date >= \'{date}\'"
+# query = f"SELECT * FROM iot_temperature WHERE date >= \'{date}\'"
 query = f"SELECT * FROM iot_temperature WHERE date >= (%s)"
 
 connection = database.create_connection()
