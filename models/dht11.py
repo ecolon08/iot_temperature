@@ -1,5 +1,7 @@
+import datetime
 import psycopg2
 import database
+import pandas as pd
 
 
 class Dht11Model:
@@ -20,7 +22,7 @@ class Dht11Model:
                 "location": self.location}
 
     @classmethod
-    def find_latest_reading(cls):
+    def get_latest_reading(cls):
         query = "SELECT * FROM iot_temperature ORDER BY date DESC LIMIT 1"
 
         connection = database.create_connection()
@@ -37,3 +39,38 @@ class Dht11Model:
 
         return dht11
 
+    @classmethod
+    def get_daily_summary(cls):
+        # compute current date
+        today = datetime.datetime.today()
+        date = today.strftime("%Y-%m-%d %H:%M:%S").split(" ")[0]
+
+        query = "SELECT * FROM iot_temperature WHERE date >= (%s)"
+
+        connection = database.create_connection()
+
+        with connection:
+            with connection.cursor() as cursor:
+                cursor.execute(query, (date,))
+                result = cursor.fetchall()
+
+        if result is not None:
+            # convert result set to pandas dataframe
+            df = pd.DataFrame(result,
+                              columns=['id',
+                                       'date',
+                                       'temp_celsius',
+                                       'temp_fahrenheit',
+                                       'humidity',
+                                       'location']
+                              )
+
+            # grab the summaries of interest
+            summary_df = df.describe()
+            summaries = {"temp_celsius": summary_df["temp_celsius"].to_dict(),
+                         "temp_fahrenheit": summary_df["temp_fahrenheit"].to_dict(),
+                         "humidity": summary_df["humidity"].to_dict()
+                         }
+
+            return summaries
+        return None
